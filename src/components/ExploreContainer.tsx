@@ -14,6 +14,7 @@ import serviciosExamen from '../service/ExamenServicios'
         estudiantes: [] as { NOMBRE: string }[],
     });
     
+    
     // const [resultadoAprendizaje, setResultadoAprendizaje] = useState<string>('');
     // const [evaluadores, setEvaluadores] = useState<string[]>([]);
     const [nuevaActividad, setNuevaActividad] = useState<{ descripcion: string }>({

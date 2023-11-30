@@ -7,14 +7,14 @@ interface Opcion {
 }
 
 interface InputSeleccionProps {
-  // seleccionar: Opcion[];
+  seleccionar: Opcion[];
   idSeleccion: (id: string) => void;
   label: string;
   variable: string;
 }
 
-const InputSeleccion: React.FC<InputSeleccionProps> = ({ idSeleccion, label, variable,}) => {
-  const [resultadoAprendizaje, setResultadoAprendizaje] = useState<string>('');
+const InputSeleccion: React.FC<InputSeleccionProps> = ({ seleccionar, idSeleccion, label, variable }) => {
+  const [resultadoAprendizaje, setResultadoAprendizaje] = useState<string>();
 
   const onOpcionSeleccion = (event: CustomEvent) => {
     const selectedId = event.detail.value;
@@ -32,11 +32,11 @@ const InputSeleccion: React.FC<InputSeleccionProps> = ({ idSeleccion, label, var
           placeholder={label}
           onIonChange={onOpcionSeleccion}
         >
-          {/* {seleccionar.map((opcion) => (
+          {seleccionar.map((opcion) => (
             <IonSelectOption key={opcion.id} value={opcion.id}>
               {opcion[variable]}
             </IonSelectOption>
-          ))} */}
+          ))}
         </IonSelect>
       </IonItem>
     </>

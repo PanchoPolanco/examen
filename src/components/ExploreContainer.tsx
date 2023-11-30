@@ -1,37 +1,48 @@
 import React, { useEffect, useState } from 'react'
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonInput, IonLabel, IonButton,
-IonList, IonItem, IonSelect, IonSelectOption, IonGrid, IonRow, IonCol } from '@ionic/react'
+import { 
+  IonContent, IonHeader, IonPage, IonTitle, 
+  IonToolbar, IonInput, IonLabel, IonButton,
+  IonList, IonItem, IonGrid, IonRow, IonCol 
+} from '@ionic/react'
 import InputSeleccion from './InputSeleccion'
 import serviciosExamen from '../service/ExamenServicios'
 
+type FormularioExamen = {
+  programa_id: number;
+  resultado_aprendizaje_id: number;
+  proyecto_integrador: string;
+  evaluadores_ids: string[];
+  actividades_formativas: { descripcion: string }[];
+  estudiantes: { NOMBRE: string }[];
+};
+
  const ExploreContainer: React.FC = () => {
-    const [formularioExamen, setFormulario] = useState({
-        programa_id: '',
-        resultado_aprendizaje_id: '',
-        proyecto_integrador: '',
-        evaluadores_ids: [] as string[],
-        actividades_formativas: [] as { descripcion: string }[],
-        estudiantes: [] as { NOMBRE: string }[],
-    });
-    
-    
-    // const [resultadoAprendizaje, setResultadoAprendizaje] = useState<string>('');
-    // const [evaluadores, setEvaluadores] = useState<string[]>([]);
+    const [formularioExamen, setFormulario] = useState<FormularioExamen>({
+      programa_id: 0,
+      resultado_aprendizaje_id: 0,
+      proyecto_integrador: '',
+      evaluadores_ids: [],
+      actividades_formativas: [],
+      estudiantes: [],
+   });
+    const [programa, setPrograma] = useState<string[]>([]);    
+    const [resultadoAprendizaje, setResultadoAprendizaje] = useState<string[]>([]);
+    const [evaluadores, setEvaluadores] = useState<string[]>([]);
     const [nuevaActividad, setNuevaActividad] = useState<{ descripcion: string }>({
         descripcion: ''
-      });
+    });
     const [nuevoEstudiante, setNuevoEstudiante] = useState<{ NOMBRE: string }>({
         NOMBRE: ''
       });
 
-    const onPrograma = (event: any) => {
+      const onPrograma = (seleccionId: number) => {
         setFormulario({
           ...formularioExamen,
-          programa_id: event.target.value,
+          programa_id: seleccionId,
         });
       };
 
-    const onResultado = (selectedId: string) => {
+    const onResultado = (selectedId: number) => {
         setFormulario({
           ...formularioExamen,
           resultado_aprendizaje_id: selectedId,
@@ -86,6 +97,14 @@ import serviciosExamen from '../service/ExamenServicios'
         }
       };
 
+      const eliminarEvaluador = (index: number) =>{
+        const nuevoFormulario = {...formularioExamen};
+        const eliminarFormulario = [...nuevoFormulario.evaluadores_ids];
+        eliminarFormulario.splice(index, 1);
+        nuevoFormulario.evaluadores_ids = eliminarFormulario;
+        setFormulario(nuevoFormulario);
+      }
+
     const eliminarActividad = (index: number) =>{
       const nuevoFormulario = {...formularioExamen};
       const eliminarFormulario = [...nuevoFormulario.actividades_formativas];
@@ -103,10 +122,23 @@ import serviciosExamen from '../service/ExamenServicios'
     }
 
     useEffect(() => {
+      async function fetchData() {
+        try {
+          const data = await serviciosExamen.traerPrograma();
+          setPrograma(data);
+        } catch (error) {
+          console.error("Error al obtener el programa:", error);
+        }
+      }
+      fetchData();
+    }, []);
+
+    useEffect(() => {
         async function fetchData() {
           try {
             const data = await serviciosExamen.traerResultado();
-            // setResultadoAprendizaje(data);
+            setResultadoAprendizaje(data);
+            console.log("Mis resulatados de aprendizaje: ", data)
           } catch (error) {
             console.error('Error al obtener el resultado de aprendizaje:', error);
           }
@@ -118,7 +150,8 @@ import serviciosExamen from '../service/ExamenServicios'
         async function fetchData() {
           try {
             const data = await serviciosExamen.traerEvaluador();
-            // setEvaluadores(data);
+            setEvaluadores(data);
+            console.log("Mis evaluadores: ", data)
           } catch (error) {
             console.error('Error al obtener el evaluador:', error);
           }
@@ -128,8 +161,9 @@ import serviciosExamen from '../service/ExamenServicios'
 
     const onCargarExamen = async (event: React.FormEvent) => {
         event.preventDefault();
+        console.log("mi formulario examen",formularioExamen);
         try {
-            const response = await serviciosExamen.GuardarExamen();
+            await serviciosExamen.guardarExamen(formularioExamen);
         } catch (error) {
             console.error('Error al enviar los datos del examen:', error);
         }
@@ -143,35 +177,43 @@ import serviciosExamen from '../service/ExamenServicios'
                 </IonToolbar>
             </IonHeader>
         <IonContent>
+          <form onSubmit={onCargarExamen}>
                 <IonList>
                   <IonItem>
-                      <IonLabel position="floating">Programa</IonLabel>
-                      <IonInput 
+                      <IonLabel style={{whiteSpace: 'normal'}}>Programa</IonLabel>
+                      <InputSeleccion 
+                          seleccionar={programa} 
+                          idSeleccion={onPrograma}
+                          label='seleccione programa'
+                          variable='nombre'
+                      />
+                      {/* <IonInput 
                           type="text" 
                           value={formularioExamen.programa_id} 
                           onIonChange={onPrograma}
-                      ></IonInput>            
+                      ></IonInput>             */}
                   </IonItem>
                   <IonItem className="item">
                       <IonLabel style={{whiteSpace: 'normal'}}>Resultados de Aprendizaje</IonLabel>
                       <InputSeleccion 
-                          // seleccionar={resultadoAprendizaje} 
+                          seleccionar={resultadoAprendizaje} 
                           idSeleccion={onResultado}
                           label='seleccione resultado'
-                          variable='titulo'/>
+                          variable='titulo'
+                      />
                   </IonItem>
                   <IonItem>
                       <IonLabel position="floating">Proyecto Integrador</IonLabel>
                       <IonInput
                           type="text"
                           value={formularioExamen.proyecto_integrador}
-                          onIonChange={(e) => onProyectoIntegrador(e.detail.value!)}
+                          onIonChange={onProyectoIntegrador}
                       ></IonInput>
                   </IonItem>
                   <IonItem className="item">
                       <IonLabel style={{whiteSpace: 'normal'}}>Evaluadores</IonLabel>
                       <InputSeleccion
-                          // seleccionar={evaluadores}
+                          seleccionar={evaluadores}
                           idSeleccion={onEvaluadores}
                           label='seleccione evaluador'
                           variable='nombre_evaluador'
@@ -181,14 +223,20 @@ import serviciosExamen from '../service/ExamenServicios'
                       <IonRow>
                       <IonCol>Lista de Evaluadores</IonCol>
                       </IonRow>
-                      {/* {evaluadores.map((evaluador, index) => (
-                      <IonRow key={index}>
-                          <IonCol>{evaluador}</IonCol>
-                          <IonCol>
-                          <IonButton>Eliminar</IonButton>
-                          </IonCol>
-                      </IonRow>
-                      ))} */}
+                      {formularioExamen.evaluadores_ids.map((evaluadorId, index) => (
+                        // const evaluador = evaluadores.find((e) => e.id === evaluadorId);
+                        // if (!evaluador) {
+                        //   return null;
+                        // }
+                        // return (
+                          <IonRow key={index}>
+                            <IonCol>{evaluadorId}</IonCol>
+                            <IonCol>
+                              <IonButton onClick={() => eliminarEvaluador(index)}>Eliminar</IonButton>
+                            </IonCol>
+                          </IonRow>
+                        // );
+                      ))}
                   </IonGrid>
                   <IonItem>
                     <IonItem>
@@ -245,9 +293,10 @@ import serviciosExamen from '../service/ExamenServicios'
                       ))}
                   </IonGrid>
                 </IonList>
-                <IonButton>
-                  Enviar
+                <IonButton type='submit'>
+                  Crear Examen
                 </IonButton>
+          </form>
         </IonContent>
         </IonPage>
     );
